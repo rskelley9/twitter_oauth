@@ -21,9 +21,16 @@ get '/auth' do
 
   # User account and store access token
 
- @user = User.find_or_create_by(username: @access_token.params[:screen_name],
-                                oauth_token: @access_token.token,
-                                oauth_secret: @access_token.secret )
+  # @user = User.find_or_create_by_username_and_oauth_token_and_oauth_secret(username: @access_token.params[:screen_name], @access_token.token, @access_token.secret)
+
+  @user = User.find_by_username(@access_token.params[:screen_name])
+
+  if !@user
+    @user = User.create(username: @access_token.params[:screen_name], 
+      oauth_token: @access_token.params[:oauth_token], 
+      oauth_secret: @access_token.params[:oauth_token_secret])
+  end
+
   session[:user_id] = @user.id
 
   erb :index
@@ -37,9 +44,9 @@ post '/tweet' do
   user = User.find(session[:user_id])
 
   twitter_user = Twitter::Client.new(
-  :oauth_token => user[:oauth_token],
-  :oauth_token_secret => user[:oauth_secret]
-)   
+    :oauth_token => user[:oauth_token],
+    :oauth_token_secret => user[:oauth_secret]
+    )   
   twitter_user.update(params[:tweet_text])
 
   redirect to '/'
