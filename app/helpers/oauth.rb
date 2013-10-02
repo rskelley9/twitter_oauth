@@ -20,3 +20,4 @@ def request_token
   end
   session[:request_token]
 end
+
